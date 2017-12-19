@@ -175,6 +175,27 @@ void PromiseReject(const FunctionCallbackInfo<Value>& args) {
 }
 
 
+// Initiailizes data structure with all the hashes for CompileUnboundInternal to use.
+void EnableHashing(const FunctionCallbackInfo<Value>& args) {
+  v8::Isolate* isolate = args.GetIsolate();
+  if (args[0]->IsNullOrUndefined() || !args[0]->IsString()) return;
+  printf("Getting hashes\n");
+  auto whitelist = new std::unordered_set<std::string>();
+  char* filename = *v8::String::Utf8Value(args[0]);
+  std::ifstream infile(filename);
+  std::string line;
+  while (std::getline(infile, line)) {
+    whitelist->insert(line);
+    //std::cout << line << std::endl;
+  }
+//  void* void_whitelist = static_cast<void*>(whitelist);
+  isolate->SetData(1, whitelist); 
+
+//  Maybe<bool> ret = true;
+//  args.GetReturnValue().Set(ret);
+}
+
+
 void Initialize(Local<Object> target,
                 Local<Value> unused,
                 Local<Context> context) {
@@ -225,6 +246,7 @@ void Initialize(Local<Object> target,
   env->SetMethod(target, "createPromise", CreatePromise);
   env->SetMethod(target, "promiseResolve", PromiseResolve);
   env->SetMethod(target, "promiseReject", PromiseReject);
+  env->SetMethod(target, "enableHashing", EnableHashing);
 }
 
 }  // namespace util
